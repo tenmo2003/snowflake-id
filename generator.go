@@ -36,13 +36,9 @@ func NewGenerator(chosenEpoch *time.Time, machineID int64) *SnowflakeIDGenerator
 func (g *SnowflakeIDGenerator) GenerateID() int64 {
 	seq, timestamp := g.getNextSequenceNumber()
 
-	machineIDMask := int64(1<<(MACHINE_ID_BIT+SEQUENCE_BIT) - 1)
-	paddedMachineID := (machineIDMask & g.machineID) << SEQUENCE_BIT
-
-	timestampMask := int64(1<<(TIMESTAMP_BIT+MACHINE_ID_BIT+SEQUENCE_BIT) - 1)
-	paddedTimestamp := (timestampMask & timestamp) << (MACHINE_ID_BIT + SEQUENCE_BIT)
-
-	return paddedMachineID | paddedTimestamp | seq
+	return (timestamp << (MACHINE_ID_BIT + SEQUENCE_BIT)) |
+		(g.machineID & SEQUENCE_BIT) |
+		seq
 }
 
 func (g *SnowflakeIDGenerator) getNextSequenceNumber() (int64, int64) {

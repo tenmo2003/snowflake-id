@@ -15,14 +15,14 @@ const MAX_MACHINE_ID = int64(1<<MACHINE_ID_BIT) - 1
 const MAX_SEQUENCE = int64(1<<SEQUENCE_BIT) - 1
 
 type SnowflakeIDGenerator struct {
-	chosenEpoch            *time.Time
+	chosenEpoch            time.Time
 	machineID              int64
 	currentSequenceNumber  int64
 	lastGeneratedTimestamp int64
 	mut                    sync.Mutex
 }
 
-func NewGenerator(chosenEpoch *time.Time, machineID int64) *SnowflakeIDGenerator {
+func NewGenerator(chosenEpoch time.Time, machineID int64) *SnowflakeIDGenerator {
 	if machineID > MAX_MACHINE_ID {
 		panic("machineID must be less than " + strconv.FormatInt(MAX_MACHINE_ID, 10))
 	}
@@ -75,5 +75,5 @@ func (g *SnowflakeIDGenerator) waitUntilNextMillisecond(timeFromEpoch int64) int
 }
 
 func (g *SnowflakeIDGenerator) timestamp() int64 {
-	return time.Since(*g.chosenEpoch).Milliseconds()
+	return time.Since(g.chosenEpoch).Milliseconds()
 }

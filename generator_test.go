@@ -28,14 +28,14 @@ func decodeID(id int64) (ts int64, machineID int64, seq int64) {
 func TestNewGenerator_PanicsWhenMachineIDTooLarge(t *testing.T) {
 	epoch := time.Unix(0, 0).UTC()
 	mustPanic(t, func() {
-		_ = NewGenerator(&epoch, MAX_MACHINE_ID+1)
+		_ = NewGenerator(epoch, MAX_MACHINE_ID+1)
 	})
 }
 
 func TestGenerateID_EncodesMachineID(t *testing.T) {
 	epoch := time.Unix(0, 0).UTC()
 	const machineID = int64(42)
-	gen := NewGenerator(&epoch, machineID)
+	gen := NewGenerator(epoch, machineID)
 
 	id := gen.GenerateID()
 	_, gotMachineID, _ := decodeID(id)
@@ -46,7 +46,7 @@ func TestGenerateID_EncodesMachineID(t *testing.T) {
 
 func TestGenerateID_UniqueSequential(t *testing.T) {
 	epoch := time.Unix(0, 0).UTC()
-	gen := NewGenerator(&epoch, 1)
+	gen := NewGenerator(epoch, 1)
 
 	const n = 10_000
 	seen := make(map[int64]struct{}, n)
@@ -61,10 +61,10 @@ func TestGenerateID_UniqueSequential(t *testing.T) {
 
 func TestGenerateID_UniqueConcurrent(t *testing.T) {
 	epoch := time.Unix(0, 0).UTC()
-	gen := NewGenerator(&epoch, 7)
+	gen := NewGenerator(epoch, 7)
 
 	const (
-		goroutines   = 1000
+		goroutines   = 1_000_000
 		idsPerWorker = 2_000
 	)
 
@@ -95,7 +95,7 @@ func TestGenerateID_UniqueConcurrent(t *testing.T) {
 
 func TestGenerateID_SequenceIncrementsWithinSameMillisecond(t *testing.T) {
 	epoch := time.Unix(0, 0).UTC()
-	gen := NewGenerator(&epoch, 3)
+	gen := NewGenerator(epoch, 3)
 
 	prevID := gen.GenerateID()
 	prevTS, _, prevSeq := decodeID(prevID)
@@ -122,16 +122,9 @@ func TestGenerateID_SequenceIncrementsWithinSameMillisecond(t *testing.T) {
 	}
 }
 
-func TestGenerateID_PanicsWhenEpochNil(t *testing.T) {
-	gen := NewGenerator(nil, 1)
-	mustPanic(t, func() {
-		_ = gen.GenerateID()
-	})
-}
-
 func TestGenerateID_PanicsWhenEpochInFuture(t *testing.T) {
 	epoch := time.Now().Add(1 * time.Hour)
-	gen := NewGenerator(&epoch, 1)
+	gen := NewGenerator(epoch, 1)
 	mustPanic(t, func() {
 		_ = gen.GenerateID()
 	})
@@ -139,7 +132,7 @@ func TestGenerateID_PanicsWhenEpochInFuture(t *testing.T) {
 
 func TestGenerateID_PanicsWhenClockMovesBackwards(t *testing.T) {
 	epoch := time.Unix(0, 0).UTC()
-	gen := NewGenerator(&epoch, 1)
+	gen := NewGenerator(epoch, 1)
 
 	gen.lastGeneratedTimestamp = gen.timestamp() + 10_000
 	mustPanic(t, func() {

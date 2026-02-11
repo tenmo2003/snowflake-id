@@ -37,7 +37,7 @@ func (g *SnowflakeIDGenerator) GenerateID() int64 {
 	seq, timestamp := g.getNextSequenceNumber()
 
 	return (timestamp << (MACHINE_ID_BIT + SEQUENCE_BIT)) |
-		(g.machineID & SEQUENCE_BIT) |
+		(g.machineID << SEQUENCE_BIT) |
 		seq
 }
 
